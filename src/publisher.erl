@@ -4,6 +4,12 @@
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 main(Argv) ->
+    {Severity, Message} = case Argv of
+        [] -> {<<"info">>, <<"Hello Opflow!">>};
+        [S] -> {list_to_binary(S), <<"Hello Opflow!">>};
+        [S | Msg] -> {list_to_binary(S), list_to_binary(string:join(Msg, " "))}
+    end,
+
     V_host = os:getenv("OPFLOW_TDD_HOST"),
     V_username = os:getenv("OPFLOW_TDD_USERNAME"),
     V_password = os:getenv("OPFLOW_TDD_PASSWORD"),
@@ -19,14 +25,6 @@ main(Argv) ->
       type = <<"direct">>
     }),
 
-    {Severity, Message} = case Argv of
-        [] ->
-            {<<"info">>, <<"Hello Opflow!">>};
-        [S] ->
-            {list_to_binary(S), <<"Hello Opflow!">>};
-        [S | Msg] ->
-            {list_to_binary(S), list_to_binary(string:join(Msg, " "))}
-    end,
     amqp_channel:cast(Channel,
         #'basic.publish'{
             exchange = <<"opflow-erlang-publisher">>,

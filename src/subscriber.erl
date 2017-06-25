@@ -17,13 +17,17 @@ main(Argv) ->
     amqp_channel:call(Channel, #'exchange.declare'{
             exchange = <<"opflow-erlang-publisher">>,
             type = <<"direct">>}),
-    #'queue.declare_ok'{queue = Queue} = amqp_channel:call(Channel,
-        #'queue.declare'{exclusive = true}),
 
-    [amqp_channel:call(Channel,
-        #'queue.bind'{exchange = <<"opflow-erlang-publisher">>,
-                      routing_key = list_to_binary(Severity),
-                      queue = Queue}) || Severity <- Argv],
+    #'queue.declare_ok'{queue = Queue} = 
+        amqp_channel:call(Channel, #'queue.declare'{exclusive = true}),
+
+    [
+        amqp_channel:call(Channel, #'queue.bind'{
+            exchange = <<"opflow-erlang-publisher">>,
+            routing_key = list_to_binary(Severity),
+            queue = Queue
+        }) || Severity <- Argv
+    ],
 
     io:format(" [*] Waiting for messages. To exit press CTRL+C~n"),
 
